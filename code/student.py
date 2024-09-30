@@ -6,6 +6,7 @@ import numpy as np
 from numpy import pi, exp, sqrt
 from skimage import io, img_as_ubyte, img_as_float32
 from skimage.transform import rescale
+import matplotlib.pyplot as plt
 
 def my_imfilter(image, kernel):
     """
@@ -25,9 +26,51 @@ def my_imfilter(image, kernel):
 
     ##################
     # Your code here #
-    print('my_imfilter function in student.py needs to be implemented')
-    ##################
+    height_k, width_k = kernel.shape
+    print("kernel: ", kernel.shape)
+    #CODE HERE TO raise exception for even filters
+    pad_h = height_k//2
+    pad_w = width_k//2
+    
+    #rotate the kernel
+    kernel = np.rot90(kernel, 2)
 
+    '''
+    idea: rescale the image when it doesn't have multiple channels
+    if len(image.shape) == 2:
+        image = [image]
+    height_i, width_i, channel = image.shape
+    '''
+    if len(image.shape) == 3:
+        height_i, width_i, channel = image.shape
+        print("input image: ", image.shape)
+        #pad input image np.pad() with zeros based on kernel size
+        image = np.pad(image, ((pad_h, pad_h), (pad_w, pad_w), (0, 0)), 'constant')
+        #convolution function, for RGB images do convolution on every channel
+        #place center of kernel at a (x, y) in input image
+        for c in range(channel):
+            for i in range(height_i):
+                for j in range(width_i):
+                    x = i+pad_h
+                    y = j+pad_w
+                #element wise multiplcation np.multiply() and then sum np.sum()
+                    neighborhood = image[x-pad_h:x+pad_h+1, y-pad_w: y+pad_w+1, c]
+                #place sum into (x, y) in output image
+                    filtered_image[i, j, c] = np.sum(np.multiply(kernel, neighborhood))
+
+    else:
+        height_i, width_i = image.shape
+        print("input image: ", image.shape)
+        image = np.pad(image, ((pad_h, pad_h), (pad_w, pad_w)), 'constant')
+        for i in range(height_i):
+            for j in range(width_i):
+                x = i+pad_h
+                y = j+pad_w
+                neighborhood = image[x-pad_h:x+pad_h+1, y-pad_w: y+pad_w+1]
+                filtered_image[i, j] = np.sum(np.multiply(kernel, neighborhood))
+
+    ##################
+    print("filtered image: ", filtered_image.shape)
     return filtered_image
 
 """
@@ -82,16 +125,25 @@ def gen_hybrid_image(image1, image2, cutoff_frequency):
     kernel = np.outer(probs, probs)
 
     # Your code here
-    low_frequencies = np.zeros(image1.shape) # Replace with your implementation
+    low_frequencies = my_imfilter(image1, kernel) # Replace with your implementation
 
     # (2) Remove the low frequencies from image2. The easiest way to do this is to
     #     subtract a blurred version of image2 from the original version of image2.
     #     This will give you an image centered at zero with negative values.
     # Your code here #
-    high_frequencies = np.zeros(image1.shape) # Replace with your implementation
+    high_frequencies = image2 - my_imfilter(image2, kernel) # Replace with your implementation
 
     # (3) Combine the high frequencies and low frequencies, and make sure the hybrid image values are within the range 0.0 to 1.0
     # Your code here
-    hybrid_image = np.zeros(image1.shape) # Replace with your implementation
+    hybrid_image = np.clip(low_frequencies + high_frequencies, 0.0, 1.0) # Replace with your implementation
+    #hybrid_image[hybrid_image > 1.0] = 1.0
+    #hybrid_image[hybrid_image < 0.0] = 0.0
+
+    f, axarr = plt.subplots(2,2)
+    axarr[0,0].imshow(low_frequencies, cmap = 'gray')
+    axarr[0,1].imshow(high_frequencies, cmap = 'gray')
+    axarr[1,0].imshow(hybrid_image, cmap = 'gray')
+
+    plt.show()
 
     return low_frequencies, high_frequencies, hybrid_image
