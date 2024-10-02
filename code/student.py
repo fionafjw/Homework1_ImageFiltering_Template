@@ -22,6 +22,7 @@ def my_imfilter(image, kernel):
     Errors if:
     - filter/kernel has any even dimension -> raise an Exception with a suitable error message.
     """
+    
     filtered_image = np.zeros(image.shape)
 
     ##################
@@ -32,15 +33,10 @@ def my_imfilter(image, kernel):
     #print("kernel: ", kernel.shape)
     pad_h = height_k//2
     pad_w = width_k//2
-    
+    #print("pad_h, pad_w:", pad_h, pad_w)
     #rotate the kernel
     kernel = np.rot90(kernel, 2)
-
-    '''
-    idea: rescale the image when it doesn't have multiple channels
-    if len(image.shape) == 2:
-        image = [image]
-    height_i, width_i, channel = image.shape
+    
     '''
     if len(image.shape) == 3:
         height_i, width_i, channel = image.shape
@@ -69,9 +65,33 @@ def my_imfilter(image, kernel):
                 y = j+pad_w
                 neighborhood = image[x-pad_h:x+pad_h+1, y-pad_w: y+pad_w+1]
                 filtered_image[i, j] = np.sum(np.multiply(kernel, neighborhood))
+    '''
+    #trying my_imfilter with shifts to optimize speed
+    #multiply the image by each kernel value and store it in a temporary image add all together
+    #loop by kernel size
+    #'''
+    image = np.pad(image, ((pad_h, pad_h), (pad_w, pad_w), (0, 0)), 'constant')
+    filtered_image = np.zeros(image.shape)
+    for i in range(height_k):
+        for j in range(width_k):
+            temp = np.multiply(kernel[i, j], image)
+            #shift up or down
+            temp = np.roll(temp, pad_h-i, axis = 0)
+            #shift left or right
+            temp = np.roll(temp, pad_w-j, axis = 1)
+            #add to final image
+            filtered_image += temp
 
+    #print("after convolution: ", filtered_image.shape)
+    height_i, width_i = image.shape[:2]
+    if filtered_image.ndim == 3:
+        filtered_image = filtered_image[pad_h:height_i-pad_h, pad_w:width_i-pad_w, :]
+    else:
+        filtered_image = filtered_image[pad_h:height_i-pad_h, pad_w:width_i-pad_w]
+        
+    #print("after reduction: ", filtered_image.shape)
+    #'''
     ##################
-    #print("filtered image: ", filtered_image.shape)
     return filtered_image
 
 """
