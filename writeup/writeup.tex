@@ -53,6 +53,8 @@
 \usepackage{times}
 \usepackage{booktabs}
 \usepackage{amssymb}
+\usepackage{enumerate}   
+
 
 % python code format: https://github.com/olivierverdier/python-latex-highlighting
 \usepackage{pythonhighlight}
@@ -127,78 +129,65 @@ YES $\square$ NO $\blacksquare$ % change answer to \blacksquare
 
 \section*{Assignment Overview}
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. See Equation~\ref{eq:one}.
-
-\begin{equation}
-a = b + c
-\label{eq:one}
-\end{equation}
+The assignment contains two functions:
+\begin{enumerate}
+    \item my\_imfilter \\
+    It takes in an image and a kernel and convolves the two inputs to make a filtered image
+    \item gen\_hybrid\_images \\
+    It takes in two images and a cutoff frequency. The function takes low frequencies from the first image with a Gaussian blur (where the standard deviation is based off the cutoff frequency), high frequencies from the second image, and combines the filtered images to create a hybrid image.
+\end{enumerate}
 
 \section*{Implementation Detail}
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-My code snippet highlights an interesting point.
+In my first approach in writing the function my\_imfilter, I modeled the mathematical equation for 2D convolution,
+\begin{center}
+$h[m, n] = \sum_{k,l} f[k,l]I[m-k, n-l]$
+\end{center}
+in code. For gray scale images I used 2 loops to visit every element of the image. At each element, I used logical indexing to extract a matrix of the kernel's shape which is highlighted in this code snippet.
 \begin{python}
-one = 1;
-two = one + one;
-if two == 2
-    disp( 'This computer is not broken.' );
-end
+neighborhood = image[x-pad_h:x+pad_h+1, y-pad_w: y+pad_w+1, c]
 \end{python}
+The used numpy functions multiply and sum to perform element wise multiplication on the kernel and neighborhood and summing all the elements together. Then I stored the sum into the corresponding coordinate of the output image.\\
+For RGB images, the code performs the same process except three times on each channel, so, I implemented a third for loop. \\\\
+\textbf{Final Improved Approach to Speed Up}: I realized that this approach was slow and wrote a new function to take advantage of numpy array operations. Instead of updating one pixel at a time, the optimized function performs multiplication by each kernel element, as the kernel size is much smaller than the image size. Then the function shifts each multiplied image by the distance from the kernel center and adds each shifted matrix together.
+\\\\
+gen\_hybrid\_image first takes low frequencies from image1 with a Gaussian blur and then takes high frequencies from image2 by taking a Gaussian blur on image2 and then subtracting the filtered image2 from the original image2. Then it adds the low frequency image1 and high frequency image2 and clips out of range values to produce the hybrid image.
 
 \section*{Result}
+On the next page are my three hybrid images:
 
-\begin{enumerate}
-    \item Result 1 was a total failure, because...
-    \item Result 2 (Figure~\ref{fig:result1}, left) was surprising, because...
-    \item Result 3 (Figure~\ref{fig:result1}, right) blew my socks off, because...
-\end{enumerate}
-
-\begin{figure}[h]
+\begin{figure}
     \centering
-    \includegraphics[width=5cm]{placeholder.jpg}
-    \includegraphics[width=5cm]{placeholder.jpg}
-    \caption{\emph{Left:} My result was spectacular. \emph{Right:} Curious.}
-    \label{fig:result1}
+    \includegraphics[width=4cm]{high_frequencies1.jpg}
+    \includegraphics[width=4cm]{low_frequencies1.jpg}
+    \includegraphics[width=4cm]{hybrid_image1.jpg}
+    \caption{\emph{Left:} High frequency image of cat. \emph{Center:} Low frequency image of dog. \emph{Right:} Hybrid image.}
 \end{figure}
 
-My results are summarized in Table~\ref{tab:table1}.
-
-\begin{table}[h]
+\begin{figure}
     \centering
-    \begin{tabular}{lr}
-        \toprule
-        Condition & Time (seconds) \\
-        \midrule
-        Test 1 & 1 \\
-        Test 2 & 1000 \\
-        \bottomrule
-    \end{tabular}
-    \caption{Stunning revelation about the efficiency of my code.}
-    \label{tab:table1}
-\end{table}
+    \includegraphics[width=4cm]{high_frequencies2.jpg}
+    \includegraphics[width=4cm]{low_frequencies2.jpg}
+    \includegraphics[width=4cm]{hybrid_image2.jpg}
+    \caption{\emph{Left:} High frequency image of motorcycle. \emph{Center:} Low frequency image of bicycle. \emph{Right:} Hybrid image.}
+\end{figure}
+
+\begin{figure} 
+    \centering
+    \includegraphics[width=4cm]{high_frequencies3.jpg}
+    \includegraphics[width=4cm]{low_frequencies3.jpg}
+    \includegraphics[width=4cm]{hybrid_image3.jpg}
+    \caption{\emph{Left:} High frequency image of bird. \emph{Center:} Low frequency image of plane. \emph{Right:} Hybrid image.}
+\end{figure}
 
 \section*{Extra Credit (Optional)}
-\begin{enumerate}
-   
-    \item Implementation A, code snippets, and results
-        \begin{python}
-        one = 1;
-        two = one + one;
-        if two == 2
-            disp( 'This computer is not broken.' );
-        end
-        \end{python}
-    
-    \item Implementation B, code snippets, and results
-        \begin{python}
-        one = 1;
-        two = one + one;
-        if two == 2
-            disp( 'This computer is not broken.' );
-        end
-        \end{python}
-\end{enumerate}
+I created my own hybrid image of a cat and my friend. 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=4cm]{myhigh_frequencies.jpg}
+    \includegraphics[width=4cm]{mylow_frequencies.jpg}
+    \includegraphics[width=4cm]{myhybrid_image.jpg}
+    \caption{\emph{Left:} High frequency image of a cat. \emph{Center:} Low frequency image of my friend. \emph{Right:} Hybrid image.}
+\end{figure}
 
 \end{document}
