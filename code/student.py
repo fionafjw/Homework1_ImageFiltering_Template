@@ -70,7 +70,10 @@ def my_imfilter(image, kernel):
     #multiply the image by each kernel value and store it in a temporary image add all together
     #loop by kernel size
     #'''
-    image = np.pad(image, ((pad_h, pad_h), (pad_w, pad_w), (0, 0)), 'constant')
+    if filtered_image.ndim == 3:
+        image = np.pad(image, ((pad_h, pad_h), (pad_w, pad_w), (0, 0)), 'constant')
+    else:
+        image = np.pad(image, ((pad_h, pad_h), (pad_w, pad_w)), 'constant')
     filtered_image = np.zeros(image.shape)
     for i in range(height_k):
         for j in range(width_k):
